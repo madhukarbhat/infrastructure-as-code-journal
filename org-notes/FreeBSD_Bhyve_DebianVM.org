@@ -1,0 +1,208 @@
+#+Title: Setting up A Debian VM with Bhyve
+#+Author: Madhukar Bhat <MadhukarBhat@gmail.com>
+# Last updated Time-stamp: "Sunday, 18-Oct-26 17:35:02 mb"
+* Introduction
+
+This is a record of steps followed to setup a Debian GNU/Linux VM on a
+FreeBSD 15.1-RELEASE-P4 Host. This forms a part of my learning journey
+for Terraform. The idea is to use Terraform to automate the Local
+Debian VM setup, if that is feasible.
+
+* Reference
+The Handbook, chapter 25, section 25.7.1 and 25.7.7:
+https://docs.freebsd.org/en/books/handbook/virtualization/#virtualization-host-bhyve
+
+
+* Specifications
+
+- Bhyve VM
+- OS: Debian Linux
+- VM connects with the external world through host NIC. The host is on
+  Wireless LAN (WiFi)
+- Tools from base OS only
+
+* Host preparation
+
+- Install prerequisite packages: We are using the tool ~vm-bhyve~ to
+  simplify Bhyve commands and UEFI firmware to boot Linux
+
+#+BEGIN_SRC sh
+  pkg update
+  pkg install -y vm-bhyve edk2-bhyve
+#+END_SRC
+
+- Update ~/etc/rc.conf~:
+#+BEGIN_SRC sh
+  sysrc vm_enable="YES"
+  sysrc vm_dir="zfs:zroot/bhyve"   # Or a UFS path, e.g., "/usr/local/bhyve"
+  sysrc kld_list+=" vmm nmdm if_bridge if_tap "
+#+END_SRC
+
+- Update ~/etc/sysctl.conf~:
+
+#+BEGIN_SRC sh
+  echo "net.link.tap.up_on_open=1" >> /etc/sysctl.conf
+  sysctl net.link.tap.up_on_open=1
+#+END_SRC
+  
+- Load kernel module for Bhyve
+
+#+BEGIN_SRC sh
+  kldload vmm nmdm if_bridge if_tap
+#+END_SRC
+
+* Initialize the hypervisor and the networking
+
+- Create the ZFS pool
+  
+#+BEGIN_SRC sh
+  zfs create zroot/bhyve
+  vm init
+#+END_SRC
+
+- Copy the default guest configuration templates:
+
+#+BEGIN_SRC sh
+  cp /usr/local/share/examples/vm-bhyve/* /zroot/bhyve/.templates/
+#+END_SRC
+
+- We are on WiFi on the laptop, hence need to set up the interface
+  differently from the way a wired ethernet is used. This creates an
+  isolated internal network for the VMs without directly tying it to
+  a physical card. Create a manual host-only virtual switch.
+
+#+BEGIN_SRC sh
+  vm switch create
+  ifconfig bridge0 up
+  vm switch create -t manual -b bridge0 private
+#+END_SRC
+
+- Assign a gateway IP address to the host side of this private bridge:
+
+#+BEGIN_SRC sh
+  ifconfig bridge0 inet 10.0.0.1/24 up
+#+END_SRC
+
+- To ensure the host bridge retains its IP after a reboot, append the
+  configuration to /etc/rc.conf
+
+#+BEGIN_SRC sh
+  sysrc cloned_interfaces+="bridge0"
+  sysrc ifconfig_bridge0="inet 10.0.0.1 netmask 255.255.255.0 up"
+#+END_SRC
+
+- Enable Kernel Packet Forwarding: Tell the FreeBSD kernel to allow
+  network packets to pass from the internal bridge0 subnet through to
+  your internet-facing Wi-Fi interface (wlan0).
+
+#+BEGIN_SRC sh
+  sysctl net.inet.ip.forwarding=1
+  echo "net.inet.ip.forwarding=1" >> /etc/sysctl.conf
+#+END_SRC
+
+- Configure the PF Firewall for NAT: Use FreeBSD's native firewall,
+  PF, to handle the network address translation out of your Wi-Fi
+  interface. Update ~/etc/pf.conf~:
+
+#+BEGIN_SRC text
+  # Define interfaces and subnets
+  ext_if="wlan0"
+  virt_net="10.0.0.0/24"
+       
+  # Skip filtering on the local loopback and the VM bridge
+  set skip on lo0
+  set skip on bridge0
+       
+  # Perform Network Address Translation over Wi-Fi
+  nat on $ext_if from $virt_net to any -> ($ext_if)
+       
+  # Pass all other traffic (adjust to taste if you require strict egress rules)
+  pass out all
+  pass in all
+#+END_SRC
+
+- Enable and start the PF service:
+
+#+BEGIN_SRC sh
+  sysrc pf_enable="YES"
+  service pf restart
+#+END_SRC
+
+- Values to be used for VM statis IP setup:
+
+  |-------------------+-------------------------------------|
+  | Name              | Value                               |
+  |-------------------+-------------------------------------|
+  | Network setup     | Manual                              |
+  | IP Address        | 10.0.0.10                           |
+  | Netmask           | 255.255.255.0                       |
+  | Gateway           | 10.0.0.1  (Hosts bridge0 interface) |
+  | Name Server (DNS) | 1.1.1.1 or 8.8.8.8                  |
+  |-------------------+-------------------------------------|
+
+  
+* Download the Debian Netinst ISO
+
+- Fetch the official Debian netinstaller into the vm-bhyve ISO datastore.
+
+#+BEGIN_SRC sh
+  vm iso https://debian.org
+#+END_SRC
+
+- If that downloads only an HTML file and not the ISO image, do this -
+  download the VM Image from https://debian.org/ and place it in the
+  ~/zroot/bhyve/.iso~ directory:
+
+#+BEGIN_SRC sh
+  mv ${HOME}/Downloads/debian-13.7.0-amd64-netinst.iso /zroot/bhyve/.iso/
+#+END_SRC
+
+* Create and Configure the Debian VM
+
+- Create a 40 GB virtual machine named k8s-node using the standard
+  Debian template:
+
+#+BEGIN_SRC sh
+  vm create -t linux -s 40G k8s-node
+#+END_SRC
+
+- Edit the VM configuration file with vm configure k8s-node and verify
+  it contains the necessary CPU, memory, and UEFI settings:
+
+#+BEGIN_SRC ini
+  loader="grub"
+  cpu=2
+  memory=2G
+  network0_type="virtio-net"
+  network0_switch="public"
+  disk0_type="virtio-blk"
+  disk0_name="disk0.img"
+  grub_install0="linux /install.amd/vmlinuz console=ttyS0,115200n8 --- console=ttyS0,115200n8; initrd /install.amd/initrd.gz"
+#+END_SRC
+
+- Install Debian:
+
+#+BEGIN_SRC sh
+  vm install k8s-node debian-13.7.0-amd64-netinst.iso
+#+END_SRC
+
+- Connect to the virtual serial console:
+
+#+BEGIN_SRC sh
+  export TERM=xterm
+  stty rows 40 cols 120
+  vm console k8s-node
+#+END_SRC
+
+* Notes for installation
+
+- At the GRUB boot screen, select Install or Text mode install, we are
+  connecting with serial console, which does not support graphical
+  interface.
+- Go along the installer with the standard Debian installer steps
+- During the Software Selection screen, deselect desktop environments
+  (GNOME, etc.) and check SSH server and standard system utilities. We
+  are installing a K8S node, not a desktop workstation.
+- When installation finishes and prompts to reboot, allow it to
+  reboot.
+- To disconnect from the serial console at any point, type ~.

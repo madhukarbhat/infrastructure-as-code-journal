@@ -1,0 +1,542 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2026-10-18 Sun 17:35 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Setting up A Debian VM with Bhyve</title>
+<meta name="author" content="Madhukar Bhat &lt;MadhukarBhat@gmail.com&gt;" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+  #content { max-width: 60em; margin: auto; }
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #e6e6e6;
+    border-radius: 3px;
+    background-color: #f2f2f2;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    padding: 3px;
+    color: #555;
+    background-color: #f2f2f299;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-c:before { content: 'C'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'JavaScript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { }
+</style>
+</head>
+<body>
+<div id="content" class="content">
+<h1 class="title">Setting up A Debian VM with Bhyve</h1>
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#orgbbb1f90">1. Introduction</a></li>
+<li><a href="#org8b11341">2. Reference</a></li>
+<li><a href="#org470fa23">3. Specifications</a></li>
+<li><a href="#orgfb461f9">4. Host preparation</a></li>
+<li><a href="#org7343e68">5. Initialize the hypervisor and the networking</a></li>
+<li><a href="#org84e86ea">6. Download the Debian Netinst ISO</a></li>
+<li><a href="#org40e0e80">7. Create and Configure the Debian VM</a></li>
+<li><a href="#org84b3751">8. Notes for installation</a></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgbbb1f90" class="outline-2">
+<h2 id="orgbbb1f90"><span class="section-number-2">1.</span> Introduction</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+This is a record of steps followed to setup a Debian GNU/Linux VM on a
+FreeBSD 15.1-RELEASE-P4 Host. This forms a part of my learning journey
+for Terraform. The idea is to use Terraform to automate the Local
+Debian VM setup, if that is feasible.
+</p>
+</div>
+</div>
+<div id="outline-container-org8b11341" class="outline-2">
+<h2 id="org8b11341"><span class="section-number-2">2.</span> Reference</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+The Handbook, chapter 25, section 25.7.1 and 25.7.7:
+<a href="https://docs.freebsd.org/en/books/handbook/virtualization/#virtualization-host-bhyve">https://docs.freebsd.org/en/books/handbook/virtualization/#virtualization-host-bhyve</a>
+</p>
+</div>
+</div>
+<div id="outline-container-org470fa23" class="outline-2">
+<h2 id="org470fa23"><span class="section-number-2">3.</span> Specifications</h2>
+<div class="outline-text-2" id="text-3">
+<ul class="org-ul">
+<li>Bhyve VM</li>
+<li>OS: Debian Linux</li>
+<li>VM connects with the external world through host NIC. The host is on
+Wireless LAN (WiFi)</li>
+<li>Tools from base OS only</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgfb461f9" class="outline-2">
+<h2 id="orgfb461f9"><span class="section-number-2">4.</span> Host preparation</h2>
+<div class="outline-text-2" id="text-4">
+<ul class="org-ul">
+<li>Install prerequisite packages: We are using the tool <code>vm-bhyve</code> to
+simplify Bhyve commands and UEFI firmware to boot Linux</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>pkg update
+pkg install -y vm-bhyve edk2-bhyve
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>Update <code>/etc/rc.conf</code>:</li>
+</ul>
+<div class="org-src-container">
+<pre class="src src-sh"><code>sysrc vm_enable="YES"
+sysrc vm_dir="zfs:zroot/bhyve"   # Or a UFS path, e.g., "/usr/local/bhyve"
+sysrc kld_list+=" vmm nmdm if_bridge if_tap "
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>Update <code>/etc/sysctl.conf</code>:</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>echo "net.link.tap.up_on_open=1" &gt;&gt; /etc/sysctl.conf
+sysctl net.link.tap.up_on_open=1
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>Load kernel module for Bhyve</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>kldload vmm nmdm if_bridge if_tap
+</code></pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org7343e68" class="outline-2">
+<h2 id="org7343e68"><span class="section-number-2">5.</span> Initialize the hypervisor and the networking</h2>
+<div class="outline-text-2" id="text-5">
+<ul class="org-ul">
+<li>Create the ZFS pool</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>zfs create zroot/bhyve
+vm init
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>Copy the default guest configuration templates:</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>cp /usr/local/share/examples/vm-bhyve/* /zroot/bhyve/.templates/
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>We are on WiFi on the laptop, hence need to set up the interface
+differently from the way a wired ethernet is used. This creates an
+isolated internal network for the VMs without directly tying it to
+a physical card. Create a manual host-only virtual switch.</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>vm switch create
+ifconfig bridge0 up
+vm switch create -t manual -b bridge0 private
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>Assign a gateway IP address to the host side of this private bridge:</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>ifconfig bridge0 inet 10.0.0.1/24 up
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>To ensure the host bridge retains its IP after a reboot, append the
+configuration to /etc/rc.conf</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>sysrc cloned_interfaces+="bridge0"
+sysrc ifconfig_bridge0="inet 10.0.0.1 netmask 255.255.255.0 up"
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>Enable Kernel Packet Forwarding: Tell the FreeBSD kernel to allow
+network packets to pass from the internal bridge0 subnet through to
+your internet-facing Wi-Fi interface (wlan0).</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>sysctl net.inet.ip.forwarding=1
+echo "net.inet.ip.forwarding=1" &gt;&gt; /etc/sysctl.conf
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>Configure the PF Firewall for NAT: Use FreeBSD's native firewall,
+PF, to handle the network address translation out of your Wi-Fi
+interface. Update <code>/etc/pf.conf</code>:</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-text"><code># Define interfaces and subnets
+ext_if="wlan0"
+virt_net="10.0.0.0/24"
+
+# Skip filtering on the local loopback and the VM bridge
+set skip on lo0
+set skip on bridge0
+
+# Perform Network Address Translation over Wi-Fi
+nat on $ext_if from $virt_net to any -&gt; ($ext_if)
+
+# Pass all other traffic (adjust to taste if you require strict egress rules)
+pass out all
+pass in all
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>Enable and start the PF service:</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>sysrc pf_enable="YES"
+service pf restart
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li><p>
+Values to be used for VM statis IP setup:
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Name</th>
+<th scope="col" class="org-left">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Network setup</td>
+<td class="org-left">Manual</td>
+</tr>
+
+<tr>
+<td class="org-left">IP Address</td>
+<td class="org-left">10.0.0.10</td>
+</tr>
+
+<tr>
+<td class="org-left">Netmask</td>
+<td class="org-left">255.255.255.0</td>
+</tr>
+
+<tr>
+<td class="org-left">Gateway</td>
+<td class="org-left">10.0.0.1  (Hosts bridge0 interface)</td>
+</tr>
+
+<tr>
+<td class="org-left">Name Server (DNS)</td>
+<td class="org-left">1.1.1.1 or 8.8.8.8</td>
+</tr>
+</tbody>
+</table></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org84e86ea" class="outline-2">
+<h2 id="org84e86ea"><span class="section-number-2">6.</span> Download the Debian Netinst ISO</h2>
+<div class="outline-text-2" id="text-6">
+<ul class="org-ul">
+<li>Fetch the official Debian netinstaller into the vm-bhyve ISO datastore.</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>vm iso https://debian.org
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>If that downloads only an HTML file and not the ISO image, do this -
+download the VM Image from <a href="https://debian.org/">https://debian.org/</a> and place it in the
+<code>/zroot/bhyve/.iso</code> directory:</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>mv ${HOME}/Downloads/debian-13.7.0-amd64-netinst.iso /zroot/bhyve/.iso/
+</code></pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org40e0e80" class="outline-2">
+<h2 id="org40e0e80"><span class="section-number-2">7.</span> Create and Configure the Debian VM</h2>
+<div class="outline-text-2" id="text-7">
+<ul class="org-ul">
+<li>Create a 40 GB virtual machine named k8s-node using the standard
+Debian template:</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>vm create -t linux -s 40G k8s-node
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>Edit the VM configuration file with vm configure k8s-node and verify
+it contains the necessary CPU, memory, and UEFI settings:</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-ini"><code>loader="grub"
+cpu=2
+memory=2G
+network0_type="virtio-net"
+network0_switch="public"
+disk0_type="virtio-blk"
+disk0_name="disk0.img"
+grub_install0="linux /install.amd/vmlinuz console=ttyS0,115200n8 --- console=ttyS0,115200n8; initrd /install.amd/initrd.gz"
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>Install Debian:</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>vm install k8s-node debian-13.7.0-amd64-netinst.iso
+</code></pre>
+</div>
+
+<ul class="org-ul">
+<li>Connect to the virtual serial console:</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-sh"><code>export TERM=xterm
+stty rows 40 cols 120
+vm console k8s-node
+</code></pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org84b3751" class="outline-2">
+<h2 id="org84b3751"><span class="section-number-2">8.</span> Notes for installation</h2>
+<div class="outline-text-2" id="text-8">
+<ul class="org-ul">
+<li>At the GRUB boot screen, select Install or Text mode install, we are
+connecting with serial console, which does not support graphical
+interface.</li>
+<li>Go along the installer with the standard Debian installer steps</li>
+<li>During the Software Selection screen, deselect desktop environments
+(GNOME, etc.) and check SSH server and standard system utilities. We
+are installing a K8S node, not a desktop workstation.</li>
+<li>When installation finishes and prompts to reboot, allow it to
+reboot.</li>
+<li>To disconnect from the serial console at any point, type ~.</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: Madhukar Bhat &lt;MadhukarBhat@gmail.com&gt;</p>
+<p class="date">Created: 2026-10-18 Sun 17:35</p>
+<p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
