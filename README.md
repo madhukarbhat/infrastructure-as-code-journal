@@ -50,7 +50,9 @@ A centralized knowledge base documenting enterprise-grade infrastructure automat
     -s 4,virtio-net,tap0 \
     -s 31,lpc -l bootrom,/usr/local/share/uefi-firmware/BHYVE_UEFI.fd \
     guest_vm_name
+
   ```
+* The configuration for a Bhyve VM with the host having a wired ethernet is very different from the one with Wireless LAN (WiFi). The file [FreeBSD_Bhyve_DebianVM.org](org-notes/FreeBSD_Bhyve_DebianVM.org) describes only the Wireless LAN mode.
 
 ### 📌 Jail VNET Configuration
 * Ensure the host bridge is up before assigning virtual interfaces to a jail.
