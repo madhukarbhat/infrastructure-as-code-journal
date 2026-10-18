@@ -174,7 +174,7 @@ https://docs.freebsd.org/en/books/handbook/virtualization/#virtualization-host-b
   cpu=2
   memory=2G
   network0_type="virtio-net"
-  network0_switch="public"
+  network0_switch="private"
   disk0_type="virtio-blk"
   disk0_name="disk0.img"
   grub_install0="linux /install.amd/vmlinuz console=ttyS0,115200n8 --- console=ttyS0,115200n8; initrd /install.amd/initrd.gz"
