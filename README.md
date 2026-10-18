@@ -32,7 +32,7 @@ A centralized knowledge base documenting enterprise-grade infrastructure automat
 
 ---
 
-## 📖 Quick Reference Logs (Sample Structure)
+## 📖 Quick Reference Logs
 
 ### 📌 Terraform Tips
 * Always verify state locks before forcing a plan.
