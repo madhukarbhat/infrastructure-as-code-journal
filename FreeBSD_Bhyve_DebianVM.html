@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2026-10-18 Sun 17:35 -->
+<!-- 2026-10-21 Wed 15:31 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Setting up A Debian VM with Bhyve</title>
@@ -202,19 +202,19 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#orgbbb1f90">1. Introduction</a></li>
-<li><a href="#org8b11341">2. Reference</a></li>
-<li><a href="#org470fa23">3. Specifications</a></li>
-<li><a href="#orgfb461f9">4. Host preparation</a></li>
-<li><a href="#org7343e68">5. Initialize the hypervisor and the networking</a></li>
-<li><a href="#org84e86ea">6. Download the Debian Netinst ISO</a></li>
-<li><a href="#org40e0e80">7. Create and Configure the Debian VM</a></li>
-<li><a href="#org84b3751">8. Notes for installation</a></li>
+<li><a href="#orgd9dcdc5">1. Introduction</a></li>
+<li><a href="#orgd0022aa">2. Reference</a></li>
+<li><a href="#org26ea59b">3. Specifications</a></li>
+<li><a href="#org061291d">4. Host preparation</a></li>
+<li><a href="#org1eea695">5. Initialize the hypervisor and the networking</a></li>
+<li><a href="#orgf4dbbc5">6. Download the Debian Netinst ISO</a></li>
+<li><a href="#org94b2478">7. Create and Configure the Debian VM</a></li>
+<li><a href="#org89e8030">8. Notes for installation</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orgbbb1f90" class="outline-2">
-<h2 id="orgbbb1f90"><span class="section-number-2">1.</span> Introduction</h2>
+<div id="outline-container-orgd9dcdc5" class="outline-2">
+<h2 id="orgd9dcdc5"><span class="section-number-2">1.</span> Introduction</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 This is a record of steps followed to setup a Debian GNU/Linux VM on a
@@ -224,8 +224,8 @@ Debian VM setup, if that is feasible.
 </p>
 </div>
 </div>
-<div id="outline-container-org8b11341" class="outline-2">
-<h2 id="org8b11341"><span class="section-number-2">2.</span> Reference</h2>
+<div id="outline-container-orgd0022aa" class="outline-2">
+<h2 id="orgd0022aa"><span class="section-number-2">2.</span> Reference</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 The Handbook, chapter 25, section 25.7.1 and 25.7.7:
@@ -233,8 +233,8 @@ The Handbook, chapter 25, section 25.7.1 and 25.7.7:
 </p>
 </div>
 </div>
-<div id="outline-container-org470fa23" class="outline-2">
-<h2 id="org470fa23"><span class="section-number-2">3.</span> Specifications</h2>
+<div id="outline-container-org26ea59b" class="outline-2">
+<h2 id="org26ea59b"><span class="section-number-2">3.</span> Specifications</h2>
 <div class="outline-text-2" id="text-3">
 <ul class="org-ul">
 <li>Bhyve VM</li>
@@ -245,8 +245,8 @@ Wireless LAN (WiFi)</li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orgfb461f9" class="outline-2">
-<h2 id="orgfb461f9"><span class="section-number-2">4.</span> Host preparation</h2>
+<div id="outline-container-org061291d" class="outline-2">
+<h2 id="org061291d"><span class="section-number-2">4.</span> Host preparation</h2>
 <div class="outline-text-2" id="text-4">
 <ul class="org-ul">
 <li>Install prerequisite packages: We are using the tool <code>vm-bhyve</code> to
@@ -289,8 +289,8 @@ sysctl net.link.tap.up_on_open=1
 </div>
 </div>
 </div>
-<div id="outline-container-org7343e68" class="outline-2">
-<h2 id="org7343e68"><span class="section-number-2">5.</span> Initialize the hypervisor and the networking</h2>
+<div id="outline-container-org1eea695" class="outline-2">
+<h2 id="org1eea695"><span class="section-number-2">5.</span> Initialize the hypervisor and the networking</h2>
 <div class="outline-text-2" id="text-5">
 <ul class="org-ul">
 <li>Create the ZFS pool</li>
@@ -440,8 +440,8 @@ Values to be used for VM statis IP setup:
 </ul>
 </div>
 </div>
-<div id="outline-container-org84e86ea" class="outline-2">
-<h2 id="org84e86ea"><span class="section-number-2">6.</span> Download the Debian Netinst ISO</h2>
+<div id="outline-container-orgf4dbbc5" class="outline-2">
+<h2 id="orgf4dbbc5"><span class="section-number-2">6.</span> Download the Debian Netinst ISO</h2>
 <div class="outline-text-2" id="text-6">
 <ul class="org-ul">
 <li>Fetch the official Debian netinstaller into the vm-bhyve ISO datastore.</li>
@@ -464,8 +464,8 @@ download the VM Image from <a href="https://debian.org/">https://debian.org/</a>
 </div>
 </div>
 </div>
-<div id="outline-container-org40e0e80" class="outline-2">
-<h2 id="org40e0e80"><span class="section-number-2">7.</span> Create and Configure the Debian VM</h2>
+<div id="outline-container-org94b2478" class="outline-2">
+<h2 id="org94b2478"><span class="section-number-2">7.</span> Create and Configure the Debian VM</h2>
 <div class="outline-text-2" id="text-7">
 <ul class="org-ul">
 <li>Create a 40 GB virtual machine named k8s-node using the standard
@@ -487,7 +487,7 @@ it contains the necessary CPU, memory, and UEFI settings:</li>
 cpu=2
 memory=2G
 network0_type="virtio-net"
-network0_switch="public"
+network0_switch="private"
 disk0_type="virtio-blk"
 disk0_name="disk0.img"
 grub_install0="linux /install.amd/vmlinuz console=ttyS0,115200n8 --- console=ttyS0,115200n8; initrd /install.amd/initrd.gz"
@@ -515,8 +515,8 @@ vm console k8s-node
 </div>
 </div>
 </div>
-<div id="outline-container-org84b3751" class="outline-2">
-<h2 id="org84b3751"><span class="section-number-2">8.</span> Notes for installation</h2>
+<div id="outline-container-org89e8030" class="outline-2">
+<h2 id="org89e8030"><span class="section-number-2">8.</span> Notes for installation</h2>
 <div class="outline-text-2" id="text-8">
 <ul class="org-ul">
 <li>At the GRUB boot screen, select Install or Text mode install, we are
@@ -535,7 +535,7 @@ reboot.</li>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Madhukar Bhat &lt;MadhukarBhat@gmail.com&gt;</p>
-<p class="date">Created: 2026-10-18 Sun 17:35</p>
+<p class="date">Created: 2026-10-21 Wed 15:31</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
