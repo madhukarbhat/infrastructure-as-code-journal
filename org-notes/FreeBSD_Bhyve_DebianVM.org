@@ -1,6 +1,6 @@
 #+Title: Setting up A Debian VM with Bhyve
 #+Author: Madhukar Bhat <MadhukarBhat@gmail.com>
-# Last updated Time-stamp: "Sunday, 18-Oct-26 17:35:02 mb"
+# Last updated Time-stamp: "Sunday, 25-Oct-26 13:44:37 mb"
 * Introduction
 
 This is a record of steps followed to setup a Debian GNU/Linux VM on a
@@ -10,7 +10,7 @@ Debian VM setup, if that is feasible.
 
 * Reference
 The Handbook, chapter 25, section 25.7.1 and 25.7.7:
-https://docs.freebsd.org/en/books/handbook/virtualization/#virtualization-host-bhyve
+https://docs.freebsd.org/en/books/handbook/virtualization/
 
 
 * Specifications
@@ -128,7 +128,7 @@ https://docs.freebsd.org/en/books/handbook/virtualization/#virtualization-host-b
   service pf restart
 #+END_SRC
 
-- Values to be used for VM statis IP setup:
+- Values to be used for VM static IP setup:
 
   |-------------------+-------------------------------------|
   | Name              | Value                               |
