@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2026-11-01 Sun 19:52 -->
+<!-- 2026-11-06 Fri 18:34 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Automated installation of a Debian VM with Bhyve on FreeBSD</title>
@@ -202,19 +202,19 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#orgd4cd936">1. Introduction</a></li>
-<li><a href="#org1ff046b">2. Prerequisites</a></li>
-<li><a href="#orgb56d0f1">3. Step 1: Create preseed.cfg</a></li>
-<li><a href="#org3ab8eee">4. Step 2: Create and configure the VM</a></li>
-<li><a href="#org1350dc1">5. Step 3: Serve the preseed file</a></li>
-<li><a href="#org6e97606">6. Step 4: Run the install</a></li>
-<li><a href="#org5156e30">7. Step 5: Verify</a></li>
-<li><a href="#org762ce5b">8. Notes and troubleshooting</a></li>
+<li><a href="#orgd7f07a6">1. Introduction</a></li>
+<li><a href="#orgcde6519">2. Prerequisites</a></li>
+<li><a href="#org3932409">3. Step 1: Create preseed.cfg</a></li>
+<li><a href="#orgad9443e">4. Step 2: Create and configure the VM</a></li>
+<li><a href="#orgc52ebb9">5. Step 3: Serve the preseed file</a></li>
+<li><a href="#orgc5b4cbd">6. Step 4: Run the install</a></li>
+<li><a href="#org9504f1d">7. Step 5: Verify</a></li>
+<li><a href="#org471e251">8. Notes and troubleshooting</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orgd4cd936" class="outline-2">
-<h2 id="orgd4cd936"><span class="section-number-2">1.</span> Introduction</h2>
+<div id="outline-container-orgd7f07a6" class="outline-2">
+<h2 id="orgd7f07a6"><span class="section-number-2">1.</span> Introduction</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 This part of my learning journey focuses on automating the
@@ -284,8 +284,8 @@ Constants to be used for the install:
 </table>
 </div>
 </div>
-<div id="outline-container-org1ff046b" class="outline-2">
-<h2 id="org1ff046b"><span class="section-number-2">2.</span> Prerequisites</h2>
+<div id="outline-container-orgcde6519" class="outline-2">
+<h2 id="orgcde6519"><span class="section-number-2">2.</span> Prerequisites</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 The preparation steps for the VM, that are listed in the
@@ -321,9 +321,13 @@ manual note, which is named private, so we use
 </p>
 </div>
 </div>
-<div id="outline-container-orgb56d0f1" class="outline-2">
-<h2 id="orgb56d0f1"><span class="section-number-2">3.</span> Step 1: Create preseed.cfg</h2>
+<div id="outline-container-org3932409" class="outline-2">
+<h2 id="org3932409"><span class="section-number-2">3.</span> Step 1: Create preseed.cfg</h2>
 <div class="outline-text-2" id="text-3">
+<p>
+This is documented in <a href="https://wiki.debian.org/DebianInstaller/Preseed">Debian Installer Preseed</a> Debian wiki page.
+</p>
+
 <p>
 The following content should as <code>/root/preseed/preseed.cfg</code>. This is
 available as <code>preseed.cfg.tmpl</code> in the repository. Replace the
@@ -405,11 +409,10 @@ first user to the sudo group. This gives sudo <i>with a password prompt</i>.
 </p>
 
 <p>
-If Ansible connects as this user and uses become, either supply
-<code>ansible_become_password</code> or allow passwordless sudo. For the latter,
-insert these two lines into <code>late_command</code>, before the final chmod 600
-line (keep the trailing backslashes on every line except the last one
-of the block):
+In case we need to change sudo usage to allow a passwordless sudo,
+then these two lines should be inserted into <code>late_command</code>, before
+the final chmod 600 line (keep the trailing backslashes on every line
+except the last one of the block):
 </p>
 
 <div class="org-src-container">
@@ -419,13 +422,14 @@ in-target chmod 440 /etc/sudoers.d/ops ; \
 </div>
 
 <p>
-This is a security trade-off; decide whether it suits a VM that will
-run a Kubernetes node.
+This is a security trade-off; would not be advisable for anything
+other than a lab test setup. So, one needs to decide whether it suits
+a VM that will run a Kubernetes node.
 </p>
 </div>
 </div>
-<div id="outline-container-org3ab8eee" class="outline-2">
-<h2 id="org3ab8eee"><span class="section-number-2">4.</span> Step 2: Create and configure the VM</h2>
+<div id="outline-container-orgad9443e" class="outline-2">
+<h2 id="orgad9443e"><span class="section-number-2">4.</span> Step 2: Create and configure the VM</h2>
 <div class="outline-text-2" id="text-4">
 <div class="org-src-container">
 <pre class="src src-sh"><code>vm create -t linux -s 40G k8s-node
@@ -446,6 +450,8 @@ network0_switch="private"
 disk0_type="virtio-blk"
 disk0_name="disk0.img"
 grub_install0="linux /install.amd/vmlinuz auto=true priority=critical url=http://10.0.0.1:8000/preseed.cfg netcfg/disable_autoconfig=true netcfg/get_ipaddress=10.0.0.10 netcfg/get_netmask=255.255.255.0 netcfg/get_gateway=10.0.0.1 netcfg/get_nameservers=1.1.1.1 netcfg/get_hostname=k8s-node netcfg/get_domain=local console=ttyS0,115200n8 --- console=ttyS0,115200n8; initrd /install.amd/initrd.gz"
+uuid="6f3611a9-d9d9-11f1-abf7-10653059e37e"
+network0_mac="58:9c:fc:01:bf:05"
 </code></pre>
 </div>
 
@@ -457,9 +463,13 @@ installer would wait for autoconfiguration.
 </p>
 </div>
 </div>
-<div id="outline-container-org1350dc1" class="outline-2">
-<h2 id="org1350dc1"><span class="section-number-2">5.</span> Step 3: Serve the preseed file</h2>
+<div id="outline-container-orgc52ebb9" class="outline-2">
+<h2 id="orgc52ebb9"><span class="section-number-2">5.</span> Step 3: Serve the preseed file</h2>
 <div class="outline-text-2" id="text-5">
+<p>
+With only the Python 3:
+</p>
+
 <div class="org-src-container">
 <pre class="src src-sh"><code>cd /root/preseed
 python3 -m http.server 8000 --bind 10.0.0.1
@@ -467,7 +477,7 @@ python3 -m http.server 8000 --bind 10.0.0.1
 </div>
 
 <p>
-Alternative with darkhttpd:
+Alternatively, with an additional package, <code>darkhttpd</code>:
 </p>
 
 <div class="org-src-container">
@@ -480,8 +490,8 @@ Leave the server running for the duration of the install.
 </p>
 </div>
 </div>
-<div id="outline-container-org6e97606" class="outline-2">
-<h2 id="org6e97606"><span class="section-number-2">6.</span> Step 4: Run the install</h2>
+<div id="outline-container-orgc5b4cbd" class="outline-2">
+<h2 id="orgc5b4cbd"><span class="section-number-2">6.</span> Step 4: Run the install</h2>
 <div class="outline-text-2" id="text-6">
 <p>
 Without -f, vm install starts the VM in the background and returns
@@ -513,13 +523,13 @@ vm start k8s-node
 </div>
 
 <p>
-To watch progress, attach to the serial console from another terminal:
-vm console k8s-node (detach with ~.).
+To watch progress, we can attach to the serial console from another
+terminal: <code>vm console k8s-node</code> (detach with ~.).
 </p>
 </div>
 </div>
-<div id="outline-container-org5156e30" class="outline-2">
-<h2 id="org5156e30"><span class="section-number-2">7.</span> Step 5: Verify</h2>
+<div id="outline-container-org9504f1d" class="outline-2">
+<h2 id="org9504f1d"><span class="section-number-2">7.</span> Step 5: Verify</h2>
 <div class="outline-text-2" id="text-7">
 <div class="org-src-container">
 <pre class="src src-sh"><code>ping -c 3 10.0.0.10
@@ -528,13 +538,13 @@ ssh ops@10.0.0.10 'id; dpkg -l sudo; hostnamectl'
 </div>
 
 <p>
-Expected: the VM answers on 10.0.0.10, the ops user belongs to the
+<b>Expected:</b> the VM answers on 10.0.0.10, the <code>ops</code> user belongs to the
 sudo group, and the sudo package is installed.
 </p>
 </div>
 </div>
-<div id="outline-container-org762ce5b" class="outline-2">
-<h2 id="org762ce5b"><span class="section-number-2">8.</span> Notes and troubleshooting</h2>
+<div id="outline-container-org471e251" class="outline-2">
+<h2 id="org471e251"><span class="section-number-2">8.</span> Notes and troubleshooting</h2>
 <div class="outline-text-2" id="text-8">
 <ul class="org-ul">
 <li><b>Installer stalls at network configuration:</b> check that
@@ -563,7 +573,7 @@ setting.</li>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Madhukar Bhat &lt;MadhukarBhat@gmail.com&gt;</p>
-<p class="date">Created: 2026-11-01 Sun 19:52</p>
+<p class="date">Created: 2026-11-06 Fri 18:34</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
