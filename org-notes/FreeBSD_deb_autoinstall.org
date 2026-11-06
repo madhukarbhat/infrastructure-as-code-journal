@@ -1,6 +1,6 @@
 #+Title: Automated installation of a Debian VM with Bhyve on FreeBSD
 #+Author: Madhukar Bhat <MadhukarBhat@gmail.com>
-# Last updated Time-stamp: "Sunday, 01-Nov-26 19:58:10 mb"
+# Last updated Time-stamp: "Friday, 06-Nov-26 18:31:56 mb"
 * Introduction
 
 This part of my learning journey focuses on automating the
@@ -52,6 +52,8 @@ manual note, which is named private, so we use
 ~network0_switch="private"~.
 
 * Step 1: Create preseed.cfg
+
+This is documented in [[https://wiki.debian.org/DebianInstaller/Preseed][Debian Installer Preseed]] Debian wiki page.
 
 The following content should as ~/root/preseed/preseed.cfg~. This is
 available as ~preseed.cfg.tmpl~ in the repository. Replace the
@@ -136,8 +138,9 @@ except the last one of the block):
   in-target chmod 440 /etc/sudoers.d/ops ; \
 #+END_SRC
 
-This is a security trade-off; decide whether it suits a VM that will
-run a Kubernetes node.
+This is a security trade-off; would not be advisable for anything
+other than a lab test setup. So, one needs to decide whether it suits
+a VM that will run a Kubernetes node.
 
 * Step 2: Create and configure the VM
 
@@ -157,6 +160,8 @@ The configuration should contain the following:
   disk0_type="virtio-blk"
   disk0_name="disk0.img"
   grub_install0="linux /install.amd/vmlinuz auto=true priority=critical url=http://10.0.0.1:8000/preseed.cfg netcfg/disable_autoconfig=true netcfg/get_ipaddress=10.0.0.10 netcfg/get_netmask=255.255.255.0 netcfg/get_gateway=10.0.0.1 netcfg/get_nameservers=1.1.1.1 netcfg/get_hostname=k8s-node netcfg/get_domain=local console=ttyS0,115200n8 --- console=ttyS0,115200n8; initrd /install.amd/initrd.gz"
+  uuid="6f3611a9-d9d9-11f1-abf7-10653059e37e"
+  network0_mac="58:9c:fc:01:bf:05"
 #+END_SRC
 
 The network values are repeated on the kernel command line because the
